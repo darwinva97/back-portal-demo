@@ -1,0 +1,11 @@
+# add __pycache__ to .gitignore
+
+__pycache__
+
+/**/__pycache__
+
+notes
+
+instance
+
+.env
