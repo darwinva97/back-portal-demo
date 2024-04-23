@@ -1,7 +1,6 @@
 from flask import request, jsonify
 import jwt
 from functools import wraps
-from flask import current_app as app
 from models.user import Usuario
 import bcrypt
 
@@ -23,25 +22,13 @@ def token_required(secret_key):
                 if not usuario:
                     return jsonify({'message': 'Usuario no encontrado'}), 401
 
-                # Obtén la contraseña hasheada almacenada en la base de datos
-                hashed_password_db = usuario.password
+                token = request.headers['Authorization'].split()[1]
 
-                # Obtén la contraseña proporcionada por el usuario
-                auth = request.authorization
-                if not auth or not auth.username or not auth.password:
-                    return jsonify({'message': 'Credenciales inválidas'}), 401
-                provided_password = auth.password
-
-                bytes = provided_password.encode('utf-8') 
-            
-                # generating the salt 
-                salt = bcrypt.gensalt() 
-                
-                # Hashing the password 
-                hashed_password_provided = bcrypt.hashpw(bytes, salt) 
+                data = jwt.decode(token, secret_key, algorithms=["HS256"])
+                usuario_id = data.get('usuario_id')
 
                 # Compara los hashes de las contraseñas
-                if hashed_password_provided != hashed_password_db:
+                if usuario.id != usuario_id:
                     return jsonify({'message': 'Credenciales incorrectas'}), 401
 
             except Exception as e:
