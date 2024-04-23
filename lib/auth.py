@@ -1,7 +1,6 @@
 from flask import request, jsonify
 import jwt
 from functools import wraps
-from flask import current_app as app
 from models.user import Usuario
 import bcrypt
 
