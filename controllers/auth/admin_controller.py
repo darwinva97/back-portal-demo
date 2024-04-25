@@ -37,7 +37,7 @@ def login_admin():
     data = {'type': 'admin', 'user': admin.serialize(), 'exp': expires}
     token = jwt.encode(data, SECRET_KEY, algorithm='HS256')
 
-    return jsonify({'token': token, 'exp': expires}), 200
+    return jsonify({'token': token, 'exp': expires, 'role': 'admin'}), 200
 
 
 def register_admin():

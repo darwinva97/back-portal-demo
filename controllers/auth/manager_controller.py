@@ -38,7 +38,7 @@ def login_manager():
     data = {'type': 'manager', 'user': manager.serialize(), 'exp': expires}
     token = jwt.encode(data, SECRET_KEY, algorithm='HS256')
 
-    return jsonify({'token': token, 'exp': expires}), 200
+    return jsonify({'token': token, 'exp': expires, 'role': 'manager'}), 200
 
 
 def register_manager(user_data: UserData):

@@ -45,7 +45,7 @@ def login_client():
     data = {'type': 'client', 'user': client.serialize(), 'exp': expires}
     token = jwt.encode(data, SECRET_KEY, algorithm='HS256')
 
-    return jsonify({'token': token, 'exp': expires}), 200
+    return jsonify({'token': token, 'exp': expires, 'role': 'client'}), 200
 
 
 def register_client(user_data: UserData):

@@ -5,6 +5,7 @@ from typing import NamedTuple, Union
 from models.client import Client
 from models.manager import Manager
 from models.admin import Admin
+from lib.config import ERRORS_CODE
 from lib.config import SECRET_KEY
 import bcrypt
 
@@ -12,45 +13,6 @@ import bcrypt
 class UserData(NamedTuple):
     type: str
     user: Union[Admin, Manager, Client]
-
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split()[1]
-
-        if not token:
-            return jsonify({'message': 'Token faltante'}), 401
-
-        try:
-            data_decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            user_type_decoded = data_decoded['type']
-            user_data_decoded = data_decoded['user']
-
-            user = None
-
-            if user_type_decoded == 'manager':
-                user = Client.query.get(user_data_decoded['id'])
-            elif user_type_decoded == 'client':
-                user = Manager.query.get(user_data_decoded['id'])
-            elif user_type_decoded == 'admin':
-                user = Admin.query.get(user_data_decoded['id'])
-
-            if not user:
-                return jsonify({'message': 'Usuario no encontrado'}), 401
-
-            if user.id != user_data_decoded["id"]:
-                return jsonify({'message': 'Credenciales incorrectas'}), 401
-
-        except Exception as e:
-            print(e)
-            return jsonify({'message': 'Token inválido'}), 401
-
-        return f(*args, **kwargs)
-
-    return decorated
 
 
 def get_token_required(f, list_type_users=[]):
@@ -106,6 +68,8 @@ def get_token_required(f, list_type_users=[]):
 
             return f(user_data, *args, **kwargs)
 
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token ha expirado', 'error_code': ERRORS_CODE.get('EXPIRED_TOKEN')}), 401
         except Exception as e:
             print(e)
             error_message = 'Token inválido: ' + str(e)

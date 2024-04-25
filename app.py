@@ -8,7 +8,7 @@ from controllers.user_controller import get_users
 from controllers.auth.client_controller import login_client, register_client
 from controllers.auth.manager_controller import login_manager, register_manager
 from controllers.auth.admin_controller import login_admin, register_admin
-from lib.odoo import get_leads, get_client, get_partner_subscription, get_partner_bill
+from lib.odoo import get_leads, get_client, get_partner_subscription
 
 app = Flask(__name__)
 domains = [
@@ -71,14 +71,14 @@ app.add_url_rule('/api/partners', view_func=get_client, methods=['GET'])
 
 app.add_url_rule(
     '/api/partner_subscription',
-    view_func=get_token_required(get_partner_subscription, []),
+    view_func=get_token_required(get_partner_subscription, ['client']),
     methods=['GET']
 )
-app.add_url_rule(
-    '/api/partner_bill',
-    view_func=get_token_required(get_partner_bill, []),
-    methods=['GET']
-)
+# app.add_url_rule(
+#     '/api/partner_bill',
+#     view_func=get_token_required(get_partner_bill, []),
+#     methods=['GET']
+# )
 
 app.add_url_rule('/api/leads', view_func=get_leads, methods=['GET'])
 # endregion Rest
