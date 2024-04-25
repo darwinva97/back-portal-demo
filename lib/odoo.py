@@ -53,7 +53,7 @@ def get_client():
 
 def get_partner_subscription():
     list_partner_subscription = []
-    sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '20602217508']]],
+    sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '71767949']]],
                                           {'fields': ['x_studio_nro_de_documento', 'partner_id','x_studio_nombre_direccion','x_studio_correo_electronico','x_studio_tipo_doc']})
     for rec in sale_subscription:
         field_relational = rec['id']
@@ -78,24 +78,23 @@ def get_partner_subscription():
 
 def get_partner_bill():
     list_partner_bills = []
-    sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '20602217508']]],
-                                          {'fields': ['x_studio_nro_de_documento', 'partner_id','x_studio_nombre_direccion','x_studio_correo_electronico']})
-    for rec in sale_subscription:
-        field_relational = rec['id']
-        phone_partner = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
-                                          [[['id', '=', rec['partner_id'][0]]]],
-                                          {'fields': ['phone']})
-        sale_subscription_line = models.execute_kw(db, uid, password, 'sale.subscription.line', 'search_read',
-                                                   [[['analytic_account_id', '=', field_relational]]],
-                                                   {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
-        data_partner_subscription = {'id': field_relational,
+    name_street = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['id', '=', '62866']]],
+                                          {'fields': ['x_studio_nombre_direccion']})
+    partner_invoices = models.execute_kw(db, uid, password, 'account.move', 'search_read',[[['x_studio_subscription_id.id','=', '62866']]],
+                                          {'fields': ['name','partner_id','x_studio_nro_de_documento',
+                                                      'amount_untaxed', 'amount_total','amount_residual',
+                                                      'invoice_payment_term_id']})
+
+    for rec in partner_invoices:
+        data_partner_subscription = {'invoice_id': rec['id'],
                                      'partner_name': rec['partner_id'][1],
                                      'number_document': rec['x_studio_nro_de_documento'],
-                                     'plan_type': sale_subscription_line[0]['product_id'][1],
-                                     'price_subscription': sale_subscription_line[0]['price_unit'],
-                                     'email': str(rec['x_studio_correo_electronico']),
-                                     'address': str(rec['x_studio_nombre_direccion']),
-                                     'phone': phone_partner[0]['phone'],
+                                     'street': name_street[0]['x_studio_nombre_direccion'],
+                                     # 'plan_type': sale_subscription_line[0]['product_id'][1],
+                                     'price_subscription': rec['amount_total'],
+                                     'amount_residual': rec['amount_residual'],
+                                     'IGV': rec['amount_total']-rec['amount_untaxed'],
+                                     'date_due': rec['invoice_payment_term_id']
                                      }
-        list_partner_subscription.append(data_partner_subscription)
-    return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_subscription})
+        list_partner_bills.append(data_partner_subscription)
+    return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_bills})
