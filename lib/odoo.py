@@ -53,6 +53,18 @@ def get_client():
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': models_data})
 
 
+def get_partner_subscription():
+	partner_subscription = []
+	sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',
+									[[['x_studio_nro_de_documento','=', '71767949']]], {'fields': ['x_studio_nro_de_documento', 'partner_id', 'recurring_invoice_line_ids']})
+	partner_subscription.append(sale_subscription)
+	# sale_subscription_line = models.execute_kw(db, uid, password, 'sale.subscription.line', 'search_read',
+	# 								[[['analytic_account_id', '=',sale_subscription[0]]]], {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
+	# partner_subscription.append(sale_subscription_line)
+
+	print(partner_subscription)
+	return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': sale_subscription})
+
 def add_lead():
     lead = request.json
 
