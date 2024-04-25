@@ -11,7 +11,13 @@ from controllers.auth.admin_controller import login_admin, register_admin
 from lib.odoo import get_leads, get_client, get_partner_subscription
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://127.0.0.1:5000"}})
+domains = [
+    'http://127.0.0.1:5000',
+    'http://localhost:5000',
+    'http://127.0.0.1:5173',
+    'http://localhost:5173'
+]
+CORS(app, resources={r"/api/*": {"origins": domains}})
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 
 migrate = Migrate(app, db)
