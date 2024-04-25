@@ -1,6 +1,7 @@
 from lib.config import ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD
 from flask import jsonify, request
 import xmlrpc.client
+from lib.auth import UserData
 
 url = ODOO_URL
 db = ODOO_DB
@@ -50,30 +51,26 @@ def get_client():
     print(models_data)
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': models_data})
 
-
 def get_partner_subscription():
-	partner_subscription = []
-	sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',
-									[[['x_studio_nro_de_documento','=', '71767949']]], {'fields': ['x_studio_nro_de_documento', 'partner_id', 'recurring_invoice_line_ids']})
-	partner_subscription.append(sale_subscription)
-	# sale_subscription_line = models.execute_kw(db, uid, password, 'sale.subscription.line', 'search_read',
-	# 								[[['analytic_account_id', '=',sale_subscription[0]]]], {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
-	# partner_subscription.append(sale_subscription_line)
-
-	print(partner_subscription)
-	return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': sale_subscription})
-
-def add_lead():
-    lead = request.json
-
-    body = {
-        'x_name': lead['x_name'],
-        'x_studio_celular': lead['x_studio_celular']
-    }
-
-    print(lead['x_name'])
-    # # models_data = models.execute_kw(db, uid, password, 'ir.model', 'search_read', [[]], {'fields': ['model', 'name']})
-    new_record_id = models.execute_kw(
-        db, uid, password, 'x_landing_page', 'create', [body])
-    print(new_record_id)
-    return jsonify({'mensaje': "Usuario agregado correctamente"}), 201
+    list_partner_subscription = []
+    sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '20602217508']]],
+                                          {'fields': ['x_studio_nro_de_documento', 'partner_id','x_studio_nombre_direccion','x_studio_correo_electronico']})
+    for rec in sale_subscription:
+        field_relational = rec['id']
+        phone_partner = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
+                                          [[['id', '=', rec['partner_id'][0]]]],
+                                          {'fields': ['phone']})
+        sale_subscription_line = models.execute_kw(db, uid, password, 'sale.subscription.line', 'search_read',
+                                                   [[['analytic_account_id', '=', field_relational]]],
+                                                   {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
+        data_partner_subscription = {'id': field_relational,
+                                     'partner_name': rec['partner_id'][1],
+                                     'number_document': rec['x_studio_nro_de_documento'],
+                                     'plan_type': sale_subscription_line[0]['product_id'][1],
+                                     'price_subscription': sale_subscription_line[0]['price_unit'],
+                                     'email': str(rec['x_studio_correo_electronico']),
+                                     'address': str(rec['x_studio_nombre_direccion']),
+                                     'phone': phone_partner[0]['phone'],
+                                     }
+        list_partner_subscription.append(data_partner_subscription)
+    return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_subscription})

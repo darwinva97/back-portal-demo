@@ -40,7 +40,7 @@ app.add_url_rule('/api/auth/admin/login',
                  view_func=login_admin, methods=['POST'])
 app.add_url_rule(
     '/api/auth/admin/register',
-    view_func=get_token_required(register_admin, ['admin']),
+    view_func=get_token_required(register_admin, []),
     methods=['POST']
 )
 # endregion Admin
@@ -65,8 +65,10 @@ app.add_url_rule('/api/partners', view_func=get_client, methods=['GET'])
 
 app.add_url_rule(
     '/api/partner_subscription',
-    view_func=get_partner_subscription,
+    view_func=get_token_required(get_partner_subscription, []),
     methods=['GET']
+    # view_func=get_partner_subscription,
+    # methods=['GET']
 )
 
 app.add_url_rule('/api/leads', view_func=get_leads, methods=['GET'])
