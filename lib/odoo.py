@@ -54,6 +54,31 @@ def get_client():
 def get_partner_subscription():
     list_partner_subscription = []
     sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '20602217508']]],
+                                          {'fields': ['x_studio_nro_de_documento', 'partner_id','x_studio_nombre_direccion','x_studio_correo_electronico','x_studio_tipo_doc']})
+    for rec in sale_subscription:
+        field_relational = rec['id']
+        phone_partner = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
+                                          [[['id', '=', rec['partner_id'][0]]]],
+                                          {'fields': ['phone']})
+        sale_subscription_line = models.execute_kw(db, uid, password, 'sale.subscription.line', 'search_read',
+                                                   [[['analytic_account_id', '=', field_relational]]],
+                                                   {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
+        data_partner_subscription = {'id': field_relational,
+                                     'partner_name': rec['partner_id'][1],
+                                     'type_document': rec['x_studio_tipo_doc'],
+                                     'number_document': rec['x_studio_nro_de_documento'],
+                                     'plan_type': sale_subscription_line[0]['product_id'][1],
+                                     'price_subscription': sale_subscription_line[0]['price_unit'],
+                                     'email': str(rec['x_studio_correo_electronico']),
+                                     'address': str(rec['x_studio_nombre_direccion']),
+                                     'phone': phone_partner[0]['phone'],
+                                     }
+        list_partner_subscription.append(data_partner_subscription)
+    return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_subscription})
+
+def get_partner_bill():
+    list_partner_bills = []
+    sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',[[['x_studio_nro_de_documento','=', '20602217508']]],
                                           {'fields': ['x_studio_nro_de_documento', 'partner_id','x_studio_nombre_direccion','x_studio_correo_electronico']})
     for rec in sale_subscription:
         field_relational = rec['id']
