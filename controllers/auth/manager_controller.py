@@ -6,7 +6,6 @@ from models.db import db
 from models.manager import Manager
 
 from lib.auth import check_hash, hash_password, UserData
-from lib.odoo import get_clientid_by_creds
 from lib.config import SECRET_KEY
 
 from models.admin import Admin
@@ -18,7 +17,7 @@ def login_manager():
     password = data.get('password')
 
     if not email or not password:
-        message = 'Se requieren tipo de Documento, numero de Documento y contraseña'
+        message = 'Se requiere Correo y Contraseña'
         return jsonify({'message': message}), 400
 
     manager = Manager.query.filter_by(

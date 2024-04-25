@@ -13,15 +13,14 @@ from lib.odoo import get_clientid_by_creds
 
 def register():
     data = request.get_json()
-    doc_type = data.get('doc_type')
     doc_nro = data.get('doc_nro')
     password = data.get('password')
 
-    if not doc_type or not doc_nro or not password:
-        message = 'Se requieren tipo de Documento, numero de Documento y contraseña'
+    if not doc_nro or not password:
+        message = 'Se requieren el Documento y contraseña'
         return jsonify({'message': message}), 400
 
-    odoo_client_id = get_clientid_by_creds(doc_type, doc_nro)
+    odoo_client_id = get_clientid_by_creds(doc_nro)
 
     if not odoo_client_id:
         return jsonify({'message': 'El usuario no existe'}), 400
@@ -48,14 +47,13 @@ def login_with_secret(secret_key):
     def login():
         data = request.get_json()
         password = data.get('password')
-        doc_type = data.get('doc_type')
         doc_nro = data.get('doc_nro')
 
-        if not doc_type or not doc_nro or not password:
-            message = 'Se requieren tipo de Documento, numero de Documento y contraseña'
+        if not doc_nro or not password:
+            message = 'Se requiere Documento y contraseña'
             return jsonify({'message': message}), 400
 
-        odoo_client_id = get_clientid_by_creds(doc_type, doc_nro)
+        odoo_client_id = get_clientid_by_creds(doc_nro)
 
         if not odoo_client_id:
             return jsonify({'message': 'El usuario no existe'}), 400

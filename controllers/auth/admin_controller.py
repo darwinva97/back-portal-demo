@@ -15,7 +15,7 @@ def login_admin():
     password = data.get('password')
 
     if not email or not password:
-        message = 'Se requieren tipo de Documento, numero de Documento y contraseña'
+        message = 'Se requiere Correo y contraseña'
         return jsonify({'message': message}), 400
 
     admin = Admin.query.filter_by(

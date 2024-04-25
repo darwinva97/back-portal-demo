@@ -16,14 +16,13 @@ from lib.config import SECRET_KEY
 def login_client():
     data = request.get_json()
     password = data.get('password')
-    doc_type = data.get('doc_type')
     doc_nro = data.get('doc_nro')
 
-    if not doc_type or not doc_nro or not password:
-        message = 'Se requieren tipo de Documento, numero de Documento y contraseña'
+    if not doc_nro or not password:
+        message = 'Se requieren el Documento y contraseña'
         return jsonify({'message': message}), 400
 
-    odoo_client_id = get_clientid_by_creds(doc_type, doc_nro)
+    odoo_client_id = get_clientid_by_creds(doc_nro)
 
     if not odoo_client_id:
         return jsonify({'message': 'El usuario no existe'}), 400
@@ -51,14 +50,11 @@ def login_client():
 
 def register_client(user_data: UserData):
     data = request.get_json()
-    doc_type = data.get('doc_type')
-    doc_nro = int(data.get('doc_nro'))
+    doc_nro = data.get('doc_nro')
     password = data.get('password')
 
     user = user_data.get('user')
     user_type = user_data.get("type")
-
-    print("user_type: ", user_type)
 
     if user_type != 'manager' and user_type != 'admin':
         return jsonify({'message': 'No autorizado'}), 401
@@ -66,11 +62,11 @@ def register_client(user_data: UserData):
     created_by = user.id
     created_by_type = user_type
 
-    if not doc_type or not doc_nro or not password or not created_by_type or not created_by:
-        message = 'Se requieren tipo de Documento, numero de Documento y contraseña. Y debe ser creado por el Asesor o Administrador'
+    if not doc_nro or not password or not created_by_type or not created_by:
+        message = 'Se requiere Documento y Contraseña. Y debe ser creado por el Asesor o Administrador'
         return jsonify({'message': message}), 400
 
-    odoo_client_id = get_clientid_by_creds(doc_type, doc_nro)
+    odoo_client_id = get_clientid_by_creds(doc_nro)
 
     if not odoo_client_id:
         return jsonify({'message': 'El cliente no existe en odoo'}), 400
@@ -87,7 +83,6 @@ def register_client(user_data: UserData):
     new_client = Client(
         odoo_client_id=odoo_client_id,
         doc_nro=doc_nro,
-        doc_type=doc_type,
         password=hashed_password,
         created_by=created_by,
         created_by_type=created_by_type

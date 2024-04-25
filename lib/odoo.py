@@ -18,12 +18,10 @@ def get_leads():
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': models_data})
 
 
-def get_clientid_by_creds(doc_type, doc_nro: int):
-    field_type_doc = "x_studio_tipo_doc"
+def get_clientid_by_creds(doc_nro: str):
     field_nro_doc = "x_studio_nro_de_documento"
 
     domain = [
-        (field_type_doc, '=', doc_type),
         (field_nro_doc, '=', doc_nro)
     ]
 
