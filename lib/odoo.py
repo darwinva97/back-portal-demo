@@ -60,7 +60,7 @@ def get_partner_subscription(user_data=None):
     sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read', [[['x_studio_nro_de_documento', '=', doc_nro]]],
                                           {'fields': ['x_studio_nro_de_documento', 'partner_id',
                                                       'x_studio_nombre_direccion', 'x_studio_correo_electronico',
-                                                      'x_studio_tipo_doc','stage_id']})
+                                                      'x_studio_tipo_doc', 'stage_id']})
     for rec in sale_subscription:
         field_relational = rec['id']
         phone_partner = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
@@ -85,22 +85,27 @@ def get_partner_subscription(user_data=None):
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_subscription})
 
 
-def get_partner_bill(user_data=None, subscription_id = None):
-    subscription_id = 57304
+def get_partner_bill(user_data=None, subscription_id=None):
+    if subscription_id is None:
+        return jsonify({'messagee': 'Debe enviar el subscription_id', 'data': []}), 400
+
     list_partner_bills = []
     partner_invoice = models.execute_kw(db, uid, password, 'account.move', 'search_read', [[['x_studio_subscription_id.id', '=', subscription_id]]],
-                                          {'fields': ['name','x_studio_nro_de_documento',
-                                                      'amount_total','amount_residual','partner_id',
-                                                      'amount_untaxed','x_studio_producto']})
+                                        {'fields': ['name', 'x_studio_nro_de_documento',
+                                                    'amount_total', 'amount_residual', 'partner_id',
+                                                    'amount_untaxed', 'x_studio_producto'],
+                                         'limit': 6, 'order': 'id DESC'
+                                         })
     for rec in partner_invoice:
         field_relational = rec['id']
         partner_discount_invoice = models.execute_kw(db, uid, password, 'account.move.line', 'search_read',
-                                            [[['move_id.id', '=', field_relational]]],
-                                            {'fields': ['product_id','x_studio_monto_de_descuento']})
+                                                     [[['move_id.id', '=',
+                                                         field_relational]]],
+                                                     {'fields': ['product_id', 'x_studio_monto_de_descuento']})
         sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',
-                                                   [[['id',
-                                                       '=', subscription_id]]],
-                                                   {'fields': ['x_plan_actual_id', 'x_studio_nombre_direccion','x_studio_contrato_id']})
+                                              [[['id',
+                                                 '=', subscription_id]]],
+                                              {'fields': ['x_plan_actual_id', 'x_studio_nombre_direccion', 'x_studio_contrato_id']})
 
         data_partner_subscription = {'invoice_id': field_relational,
                                      'partner_name': rec['partner_id'][1],
@@ -117,6 +122,6 @@ def get_partner_bill(user_data=None, subscription_id = None):
                                      'date_due': '5 del Siguiente Mes',
                                      }
         if data_partner_subscription['plan_name_invoice']:
-            if"Mbps" in data_partner_subscription['plan_name_invoice']:
+            if "Mbps" in data_partner_subscription['plan_name_invoice']:
                 list_partner_bills.append(data_partner_subscription)
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': list_partner_bills})

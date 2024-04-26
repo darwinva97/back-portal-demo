@@ -75,8 +75,8 @@ app.add_url_rule(
     methods=['GET']
 )
 app.add_url_rule(
-    '/api/partner_bill',
-    view_func=get_token_required(get_partner_bill, []),
+    '/api/partner_bill/<subscription_id>',
+    view_func=get_token_required(get_partner_bill, ['client']),
     methods=['GET']
 )
 

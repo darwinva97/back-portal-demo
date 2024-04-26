@@ -14,38 +14,42 @@ from lib.config import SECRET_KEY
 
 
 def login_client():
-    data = request.get_json()
-    password = data.get('password')
-    doc_nro = data.get('doc_nro')
+    try:
+        data = request.get_json()
+        password = data.get('password')
+        doc_nro = data.get('doc_nro')
 
-    if not doc_nro or not password:
-        message = 'Se requieren el Documento y contraseña'
-        return jsonify({'message': message}), 400
+        if not doc_nro or not password:
+            message = 'Se requieren el Documento y contraseña'
+            return jsonify({'message': message}), 400
 
-    odoo_client_id = get_clientid_by_creds(doc_nro)
+        odoo_client_id = get_clientid_by_creds(doc_nro)
 
-    if not odoo_client_id:
-        return jsonify({'message': 'El usuario no existe'}), 400
+        if not odoo_client_id:
+            return jsonify({'message': 'El usuario no existe'}), 400
 
-    client = Client.query.filter_by(
-        odoo_client_id=odoo_client_id
-    ).first()
+        client = Client.query.filter_by(
+            odoo_client_id=odoo_client_id
+        ).first()
 
-    if not client:
-        return jsonify({'message': 'El cliente no esta registrado en odoo'}), 401
+        if not client:
+            return jsonify({'message': 'El cliente no esta registrado en odoo'}), 401
 
-    match_password = check_hash(password, client.password)
+        match_password = check_hash(password, client.password)
 
-    # Compara los hashes de las contraseñas
-    if not match_password:
-        return jsonify({'message': 'Las credenciales son incorrectas'}), 401
+        # Compara los hashes de las contraseñas
+        if not match_password:
+            return jsonify({'message': 'Las credenciales son incorrectas'}), 401
 
-    # Genera el token JWT si las credenciales son válidas
-    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-    data = {'type': 'client', 'user': client.serialize(), 'exp': expires}
-    token = jwt.encode(data, SECRET_KEY, algorithm='HS256')
+        # Genera el token JWT si las credenciales son válidas
+        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+        data = {'type': 'client', 'user': client.serialize(), 'exp': expires}
+        token = jwt.encode(data, SECRET_KEY, algorithm='HS256')
 
-    return jsonify({'token': token, 'exp': expires, 'role': 'client'}), 200
+        return jsonify({'token': token, 'exp': expires, 'role': 'client'}), 200
+
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
 
 
 def register_client(user_data: UserData):
