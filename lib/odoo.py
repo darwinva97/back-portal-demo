@@ -58,7 +58,9 @@ def get_partner_subscription(user_data=None):
     doc_nro = user.serialize()["doc_nro"]
     list_partner_subscription = []
     sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read', [[['x_studio_nro_de_documento', '=', doc_nro]]],
-                                          {'fields': ['x_studio_nro_de_documento', 'partner_id', 'x_studio_nombre_direccion', 'x_studio_correo_electronico', 'x_studio_tipo_doc']})
+                                          {'fields': ['x_studio_nro_de_documento', 'partner_id',
+                                                      'x_studio_nombre_direccion', 'x_studio_correo_electronico',
+                                                      'x_studio_tipo_doc','stage_id']})
     for rec in sale_subscription:
         field_relational = rec['id']
         phone_partner = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
@@ -70,6 +72,7 @@ def get_partner_subscription(user_data=None):
                                                    {'fields': ['price_unit', 'product_id', 'x_studio_mbps']})
         data_partner_subscription = {'id': field_relational,
                                      'partner_name': rec['partner_id'][1],
+                                     'state_subscription': rec['stage_id'][1],
                                      'type_document': rec['x_studio_tipo_doc'],
                                      'number_document': rec['x_studio_nro_de_documento'],
                                      'plan_type': sale_subscription_line[0]['product_id'][1],
@@ -83,7 +86,7 @@ def get_partner_subscription(user_data=None):
 
 
 def get_partner_bill(user_data=None, subscription_id = None):
-    subscription_id = 104775
+    subscription_id = 2433
     list_partner_bills = []
     partner_invoice = models.execute_kw(db, uid, password, 'account.move', 'search_read', [[['x_studio_subscription_id.id', '=', subscription_id]]],
                                           {'fields': ['name','x_studio_nro_de_documento',
