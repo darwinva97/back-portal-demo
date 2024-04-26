@@ -120,10 +120,13 @@ def get_partner_bill(user_data=None, subscription_id=None):
                                                      [[['move_id.id', '=',
                                                          field_relational]]],
                                                      {'fields': ['product_id', 'x_studio_monto_de_descuento']})
+
         sale_subscription = models.execute_kw(db, uid, password, 'sale.subscription', 'search_read',
                                               [[['id',
                                                  '=', subscription_id]]],
                                               {'fields': ['x_plan_actual_id', 'x_studio_nombre_direccion', 'x_studio_contrato_id']})
+
+        contrato_id = sale_subscription[0]['x_studio_contrato_id']
 
         data_partner_subscription = {'invoice_id': field_relational,
                                      'partner_name': rec['partner_id'][1],
@@ -137,9 +140,10 @@ def get_partner_bill(user_data=None, subscription_id=None):
                                      'amount_total': rec['amount_total'],
                                      'amount_residual': rec['amount_residual'],
                                      'IGV': round(rec['amount_total']-rec['amount_untaxed'], 2),
-                                     'contract_number': sale_subscription[0]['x_studio_contrato_id'][1],
+                                     'contract_number': contrato_id[1] if contrato_id else contrato_id,
                                      'date_due': '5 del Siguiente Mes',
                                      }
+
         if data_partner_subscription['plan_name_invoice']:
             if "Mbps" in data_partner_subscription['plan_name_invoice']:
                 list_partner_bills.append(data_partner_subscription)
