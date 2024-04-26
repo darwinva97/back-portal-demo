@@ -99,7 +99,9 @@ def get_partner_bill(user_data=None, subscription_id=None):
         'partner_id',
         'amount_untaxed',
         'x_studio_producto',
-        'invoice_date'
+        'invoice_date',
+        'state',
+        'payment_state'
     ]
 
     meta = {
@@ -108,7 +110,8 @@ def get_partner_bill(user_data=None, subscription_id=None):
         'order': 'id DESC'
     }
 
-    search = [['x_studio_subscription_id.id', '=', subscription_id]]
+    search = [['x_studio_subscription_id.id', '=',
+               subscription_id], ['state', '=', 'posted']]
 
     partner_invoice = models.execute_kw(
         db, uid, password, 'account.move', 'search_read', [search], meta
@@ -141,7 +144,8 @@ def get_partner_bill(user_data=None, subscription_id=None):
                                      'amount_residual': rec['amount_residual'],
                                      'IGV': round(rec['amount_total']-rec['amount_untaxed'], 2),
                                      'contract_number': contrato_id[1] if contrato_id else contrato_id,
-                                     'date_due': '5 del Siguiente Mes',
+                                     'invoice_state': rec['state'],
+                                     'payment_state': rec['payment_state'],
                                      }
 
         if data_partner_subscription['plan_name_invoice']:
