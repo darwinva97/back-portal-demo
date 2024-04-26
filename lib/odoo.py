@@ -90,12 +90,30 @@ def get_partner_bill(user_data=None, subscription_id=None):
         return jsonify({'messagee': 'Debe enviar el subscription_id', 'data': []}), 400
 
     list_partner_bills = []
-    partner_invoice = models.execute_kw(db, uid, password, 'account.move', 'search_read', [[['x_studio_subscription_id.id', '=', subscription_id]]],
-                                        {'fields': ['name', 'x_studio_nro_de_documento',
-                                                    'amount_total', 'amount_residual', 'partner_id',
-                                                    'amount_untaxed', 'x_studio_producto'],
-                                         'limit': 6, 'order': 'id DESC'
-                                         })
+
+    fields = [
+        'name',
+        'x_studio_nro_de_documento',
+        'amount_total',
+        'amount_residual',
+        'partner_id',
+        'amount_untaxed',
+        'x_studio_producto',
+        'invoice_date'
+    ]
+
+    meta = {
+        'fields': fields,
+        'limit': 6,
+        'order': 'id DESC'
+    }
+
+    search = [['x_studio_subscription_id.id', '=', subscription_id]]
+
+    partner_invoice = models.execute_kw(
+        db, uid, password, 'account.move', 'search_read', [search], meta
+    )
+
     for rec in partner_invoice:
         field_relational = rec['id']
         partner_discount_invoice = models.execute_kw(db, uid, password, 'account.move.line', 'search_read',
@@ -110,6 +128,7 @@ def get_partner_bill(user_data=None, subscription_id=None):
         data_partner_subscription = {'invoice_id': field_relational,
                                      'partner_name': rec['partner_id'][1],
                                      'number_document': rec['x_studio_nro_de_documento'],
+                                     'invoice_date': rec['invoice_date'],
                                      'street': sale_subscription[0]['x_studio_nombre_direccion'],
                                      'plan_name': sale_subscription[0]["x_plan_actual_id"][1],
                                      'plan_name_invoice': rec['x_studio_producto'],
