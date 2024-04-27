@@ -33,7 +33,7 @@ def login_client():
         ).first()
 
         if not client:
-            return jsonify({'message': 'El cliente no esta registrado en odoo'}), 401
+            return jsonify({'message': 'El cliente no esta registrado en odoo'}), 400
 
         match_password = check_hash(password, client.password)
 

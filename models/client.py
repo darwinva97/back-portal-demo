@@ -9,8 +9,11 @@ class Client(db.Model):
     password = db.Column(db.String(80), nullable=False)
     created_by = db.Column(db.String(50), nullable=False)
     created_by_type = db.Column(db.String(50), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False,
-                           default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
 
     def serialize(self):
         return {

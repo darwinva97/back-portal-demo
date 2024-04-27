@@ -1,14 +1,22 @@
-from lib.config import SQLALCHEMY_DATABASE_URI
+from lib.config import SQLALCHEMY_DATABASE_URI, TOKEN_ODOO_CLIENT_REGISTER
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-from lib.auth import get_token_required
+from lib.auth import get_token_required, hash_password
 from models.db import db
+from models.client import Client
 from controllers.user_controller import get_users
+from controllers.auth_controller import change_password
 from controllers.auth.client_controller import login_client, register_client
 from controllers.auth.manager_controller import login_manager, register_manager
 from controllers.auth.admin_controller import login_admin, register_admin
+from controllers.admin_controller import get_admins, get_managers, get_clients
 from lib.odoo import get_leads, get_client, get_partner_subscription, get_partner_bill
+from flask import request, jsonify
+from lib.mail import mail
+from flask_mail import Message
+import random
+import string
 
 app = Flask(__name__)
 domains = [
@@ -27,6 +35,69 @@ with app.app_context():
     db.create_all()
 
 # region Auth
+
+
+def password_generator(longitud=12):
+    caracteres = string.ascii_letters + string.digits + string.punctuation
+    contrasena = ''.join(random.choice(caracteres) for _ in range(longitud))
+    return contrasena
+
+
+@app.route('/api/webhook', methods=['POST'])
+def webhook():
+    data = request.get_json()
+    document_number = data.get('document_number')
+    token = data.get('token')
+    id_subscription = data.get('id_subscription')
+    partner_email = data.get('partner_email')
+
+    print(data)
+
+    if (document_number is None) or (token is None) or (id_subscription is None):
+        return jsonify({'message': "Faltan datos"})
+
+    if token != TOKEN_ODOO_CLIENT_REGISTER:
+        return jsonify({'message': "Token invalido"})
+
+    password = password_generator(8)
+
+    hashed_password = hash_password(password)
+
+    new_client = Client(
+        odoo_client_id=id_subscription,
+        doc_nro=document_number,
+        password=hashed_password,
+        created_by='AUTOMATIC',
+        created_by_type='AUTOMATIC'
+    )
+
+    print(new_client, partner_email, hashed_password)
+
+    if partner_email:
+        # mensaje = Message(subject="Credenciales Portal",
+        #                   recipients=[partner_email],
+        #                   body="Se ha creado una nueva cuenta en el portal. Su usuario es: " + document_number + " y su contraseña es: " + password)
+        # print(mensaje)
+        # mail.send(mensaje)
+        print("Enviando correo a: ", partner_email)
+
+
+    db.session.add(new_client)
+    db.session.commit()
+
+    print("finish")
+
+    # dar de alta al usuario de odoo
+    return jsonify({'data': "Done"}), 200
+
+
+app.add_url_rule(
+    '/api/auth/change_password',
+    view_func=get_token_required(
+        change_password, ['admin', 'manager', 'client']
+    ),
+    methods=['POST']
+)
 # region Client
 app.add_url_rule(
     '/api/auth/client/login',
@@ -51,7 +122,6 @@ app.add_url_rule(
 )
 # endregion Admin
 
-
 # region Manager
 app.add_url_rule('/api/auth/manager/login',
                  view_func=login_manager, methods=['POST'])
@@ -61,11 +131,27 @@ app.add_url_rule(
     methods=['POST']
 )
 # endregion Manager
-
 # endregion Auth
 
 # region Rest
 app.add_url_rule('/api/users', view_func=get_users, methods=['GET'])
+app.add_url_rule(
+    '/api/admins',
+    view_func=get_token_required(get_admins, ['admin']),
+    methods=['GET']
+)
+
+app.add_url_rule(
+    '/api/managers',
+    view_func=get_token_required(get_managers, ['admin']),
+    methods=['GET']
+)
+
+app.add_url_rule(
+    '/api/clients',
+    view_func=get_token_required(get_clients, ['admin']),
+    methods=['GET']
+)
 
 app.add_url_rule('/api/partners', view_func=get_client, methods=['GET'])
 
