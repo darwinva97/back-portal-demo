@@ -1,22 +1,24 @@
-from lib.config import SQLALCHEMY_DATABASE_URI, TOKEN_ODOO_CLIENT_REGISTER
+import random
+import string
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask import request, jsonify
+from flask_swagger_ui import get_swaggerui_blueprint
+from lib.config import SQLALCHEMY_DATABASE_URI, TOKEN_ODOO_CLIENT_REGISTER
 from lib.auth import get_token_required, hash_password
+from lib.odoo import get_partner_subscription, get_partner_bill
+from lib.mail import mail
 from models.db import db
 from models.client import Client
-from controllers.user_controller import get_users
 from controllers.auth_controller import change_password
 from controllers.auth.client_controller import login_client, register_client
 from controllers.auth.manager_controller import login_manager, register_manager
 from controllers.auth.admin_controller import login_admin, register_admin
 from controllers.admin_controller import get_admins, get_managers, get_clients
-from lib.odoo import get_leads, get_client, get_partner_subscription, get_partner_bill
-from flask import request, jsonify
-from lib.mail import mail
-from flask_mail import Message
-import random
-import string
+
+SWAGGER_URL = "/swagger"
+API_URL = "/static/swagger.json"
 
 app = Flask(__name__)
 domains = [
@@ -34,6 +36,15 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': 'Access API'
+    }
+)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 # region Auth
 
 
@@ -87,7 +98,7 @@ app.add_url_rule(
     view_func=get_token_required(
         change_password, ['admin', 'manager', 'client']
     ),
-    methods=['POST']
+    methods=['PUT']
 )
 # region Client
 app.add_url_rule(
@@ -106,6 +117,7 @@ app.add_url_rule(
 # region Admin
 app.add_url_rule('/api/auth/admin/login',
                  view_func=login_admin, methods=['POST'])
+
 app.add_url_rule(
     '/api/auth/admin/register',
     view_func=get_token_required(register_admin, []),
@@ -125,7 +137,7 @@ app.add_url_rule(
 # endregion Auth
 
 # region Rest
-app.add_url_rule('/api/users', view_func=get_users, methods=['GET'])
+# region Admin Views
 app.add_url_rule(
     '/api/admins',
     view_func=get_token_required(get_admins, ['admin']),
@@ -143,21 +155,22 @@ app.add_url_rule(
     view_func=get_token_required(get_clients, ['admin']),
     methods=['GET']
 )
+# endregion Admin Views
 
-app.add_url_rule('/api/partners', view_func=get_client, methods=['GET'])
-
+# region Client Views
 app.add_url_rule(
     '/api/partner_subscription',
     view_func=get_token_required(get_partner_subscription, ['client']),
     methods=['GET']
 )
+
 app.add_url_rule(
     '/api/partner_bill/<subscription_id>',
     view_func=get_token_required(get_partner_bill, ['client']),
     methods=['GET']
 )
+# endregion Client Views
 
-app.add_url_rule('/api/leads', view_func=get_leads, methods=['GET'])
 # endregion Rest
 
 

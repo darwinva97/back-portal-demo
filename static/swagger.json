@@ -1,0 +1,860 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Swagger Portal",
+        "version": "1.0.0",
+        "description": "Los siguientes endpoints fue pensado para ser consumido por un módulo en Odoo (webhook) y por el cliente (web) Portal. Este backend sólo guarda 3 tipos de usuarios: client (clientes), manager (asesores) y admin (adminstradores). Los administradores pueden crear cualquier tipo de usuario, el asesor sólo puede dar de alta a clientes y un cliente sólo puede consumir datos. Todos pueden cambiar su contraseña. Sólo para el registro de clientes es que se valida con Odoo previamente. Los datos de los clientes retornados son obtenidos de Odoo."
+    },
+    "host": "localhost:5000",
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Client Endpoints",
+            "description": "Client endpoints for his views"
+        },
+        {
+            "name": "Manager Endpoints",
+            "description": "Manager endpoints for his views"
+        },
+        {
+            "name": "Admin Endpoints",
+            "description": "Admin endpoints for his views"
+        },
+        {
+            "name": "Auth Admin",
+            "description": "Authentication and registration endpoints for clients"
+        },
+        {
+            "name": "Auth Manager",
+            "description": "Authentication and registration endpoints for managers"
+        },
+        {
+            "name": "Auth Client",
+            "description": "Authentication and registration endpoints for admins"
+        }
+    ],
+    "definitions": {
+        "LoginAdminResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "exp": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "admin"
+                    ]
+                }
+            }
+        },
+        "LoginManagerResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "exp": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "manager"
+                    ]
+                }
+            }
+        },
+        "LoginClientResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "exp": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "client"
+                    ]
+                }
+            }
+        },
+        "RegisterAdminResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "names": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "RegisterManagerResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "names": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string",
+                    "description": "id del Admin"
+                }
+            }
+        },
+        "RegisterClientResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "doc_nro": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string",
+                    "description": "(id del Admin o Manager) o 'AUTOMATIC'"
+                },
+                "created_by_type": {
+                    "type": "string",
+                    "description": "'admin' o 'manager' o 'AUTOMATIC'"
+                }
+            }
+        },
+        "LoginAdminBody": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "RegisterAdminBody": {
+            "type": "object",
+            "properties": {
+                "names": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "LoginManagerBody": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "RegisterManagerBody": {
+            "type": "object",
+            "properties": {
+                "names": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "LoginClientBody": {
+            "type": "object",
+            "properties": {
+                "doc_nro": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "RegisterClientBody": {
+            "type": "object",
+            "properties": {
+                "doc_nro": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "ChangePasswordBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "WebhookClient": {
+            "type": "object",
+            "properties": {
+                "document_number": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "id_subscription": {
+                    "type": "string"
+                },
+                "partner_email": {
+                    "type": "string",
+                    "nullable": true
+                }
+            }
+        },
+        "ClientData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "created_by_type": {
+                    "type": "string"
+                },
+                "doc_nro": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "ManagerData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "names": {
+                    "type": "string"
+                }
+            }
+        },
+        "AdminData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "names": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "paths": {
+        "/webhook": {
+            "post": {
+                "tags": [
+                    "Auth Client"
+                ],
+                "summary": "Add a new pet to the store",
+                "operationId": "addPet",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Webhook usado por módulo de Odoo para dar de alta a cliente automáticamente.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/WebhookClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/clients": {
+            "get": {
+                "tags": [
+                    "Admin Endpoints"
+                ],
+                "summary": "Get clients",
+                "operationId": "getClients",
+                "description": "Get clients, solo accesible por el administrador.",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ClientData"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/managers": {
+            "get": {
+                "tags": [
+                    "Admin Endpoints"
+                ],
+                "summary": "Get managers",
+                "operationId": "getManagers",
+                "description": "Get managers, solo accesible por el administrador.",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ManagerData"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admins": {
+            "get": {
+                "tags": [
+                    "Admin Endpoints"
+                ],
+                "summary": "Get admins",
+                "operationId": "getAdmins",
+                "description": "Get admins, solo accesible por el administrador.",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/AdminData"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/change_password": {
+            "put": {
+                "tags": [
+                    "Auth Client",
+                    "Auth Manager",
+                    "Auth Admin",
+                    "Client Endpoints"
+                ],
+                "summary": "Change password",
+                "operationId": "changePassword",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "New password",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ChangePasswordBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "Cambio existoso"
+                                }
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/client/login": {
+            "post": {
+                "tags": [
+                    "Auth Client"
+                ],
+                "summary": "Login Client",
+                "operationId": "loginClient",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Login Client",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginClientBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/LoginClientResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/auth/client/register": {
+            "post": {
+                "tags": [
+                    "Auth Client",
+                    "Admin Endpoints",
+                    "Manager Endpoints"
+                ],
+                "summary": "Register Client",
+                "operationId": "registerClient",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Register Client, sólo accesible por el administrador y asesor. Dicho cliente ya debe existir previamente en odoo.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RegisterClientBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/RegisterClientResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/manager/login": {
+            "post": {
+                "tags": [
+                    "Auth Manager"
+                ],
+                "summary": "Login Manager",
+                "operationId": "loginManager",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Login Manager",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginManagerBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/LoginManagerResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/auth/manager/register": {
+            "post": {
+                "tags": [
+                    "Auth Manager",
+                    "Admin Endpoints"
+                ],
+                "summary": "Register Manager",
+                "operationId": "registerManager",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Register Manager, solo accesible por el administrador.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RegisterManagerBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/RegisterManagerResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/admin/login": {
+            "post": {
+                "tags": [
+                    "Auth Admin"
+                ],
+                "summary": "Login Admin",
+                "operationId": "loginAdmin",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Login Admin",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginAdminBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/LoginAdminResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/auth/admin/register": {
+            "post": {
+                "tags": [
+                    "Auth Admin",
+                    "Admin Endpoints"
+                ],
+                "summary": "Register Admin",
+                "operationId": "registerAdmin",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "Register Admin, solo accesible por el administrador.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RegisterAdminBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/RegisterAdminResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/partner_subscription": {
+            "get": {
+                "tags": [
+                    "Client Endpoints"
+                ],
+                "summary": "Get partner subscriptions",
+                "description": "Get partner subscriptions, solo accesible por el cliente.",
+                "operationId": "getPartnerSubscriptions",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "address": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "number_document": {
+                                                "type": "string"
+                                            },
+                                            "partner_name": {
+                                                "type": "string"
+                                            },
+                                            "phone": {
+                                                "type": "string"
+                                            },
+                                            "plan_type": {
+                                                "type": "string"
+                                            },
+                                            "price_subscription": {
+                                                "type": "number"
+                                            },
+                                            "state_subscription": {
+                                                "type": "string"
+                                            },
+                                            "type_document": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/partner_bill/{subscription_id}": {
+            "get": {
+                "tags": [
+                    "Client Endpoints"
+                ],
+                "summary": "Get partner bill",
+                "operationId": "getPartnerBill",
+                "description": "Get partner bill, solo accesible por el cliente.",
+                "parameters": [
+                    {
+                        "name": "subscription_id",
+                        "in": "path",
+                        "description": "Subscription ID",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "IGV": {
+                                                "type": "number"
+                                            },
+                                            "amount_discount_invoice": {
+                                                "type": "number"
+                                            },
+                                            "amount_residual": {
+                                                "type": "number"
+                                            },
+                                            "amount_subtotal": {
+                                                "type": "number"
+                                            },
+                                            "amount_total": {
+                                                "type": "number"
+                                            },
+                                            "contract_number": {
+                                                "type": "string"
+                                            },
+                                            "invoice_date": {
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "invoice_id": {
+                                                "type": "integer"
+                                            },
+                                            "invoice_state": {
+                                                "type": "string"
+                                            },
+                                            "number_document": {
+                                                "type": "string"
+                                            },
+                                            "partner_name": {
+                                                "type": "string"
+                                            },
+                                            "payment_state": {
+                                                "type": "string"
+                                            },
+                                            "plan_name": {
+                                                "type": "string"
+                                            },
+                                            "plan_name_invoice": {
+                                                "type": "string"
+                                            },
+                                            "street": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        }
+    }
+}
