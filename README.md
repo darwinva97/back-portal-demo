@@ -2,6 +2,14 @@
 
 Bienvenido a Portal Swagger, una API de backend diseñada para ser consumida tanto por un módulo en Odoo (webhook) como por un portal web cliente. Este backend gestiona tres tipos de usuarios: clientes, asesores y administradores. Los administradores tienen la autoridad para crear cualquier tipo de usuario, mientras que los asesores solo pueden registrar clientes y los clientes solo pueden consumir datos. Todos los usuarios tienen la capacidad de cambiar sus contraseñas. El registro de clientes se valida con Odoo antes de registrarse. Los datos de clientes devueltos se obtienen de Odoo.
 
+El documentación de Swagger está disponible en http://localhost:5000/swagger
+
+# Levantar el proyecto
+- Obtener las credenciales del servidor Odoo del cual se va a obtener los datos.
+- Insertar esas variables correctas en un archivo ".env"
+- Ejecutar `pip install -r requirements.txt`
+- Ejecutar `python app.py`
+
 ## URL Base
 La URL base para acceder a la API es `http://localhost:5000/api`.
 
