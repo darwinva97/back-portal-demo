@@ -39,8 +39,6 @@ def get_token_required(f, list_type_users=[]):
             user_type_decoded = data_decoded['type']
             user_data_decoded = data_decoded['user']
 
-            print(user_type_decoded, list_type_users, user_type_decoded not in list_type_users, "user_type_decoded")
-
             if user_type_decoded not in list_type_users:
                 return jsonify({'message': 'Usuario no autorizado'}), 401
 

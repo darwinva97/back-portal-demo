@@ -51,8 +51,6 @@ def webhook():
     id_subscription = data.get('id_subscription')
     partner_email = data.get('partner_email')
 
-    print(data)
-
     if (document_number is None) or (token is None) or (id_subscription is None):
         return jsonify({'message': "Faltan datos"})
 
@@ -71,23 +69,16 @@ def webhook():
         created_by_type='AUTOMATIC'
     )
 
-    print(new_client, partner_email, hashed_password)
-
     if partner_email:
+        pass
         # mensaje = Message(subject="Credenciales Portal",
         #                   recipients=[partner_email],
         #                   body="Se ha creado una nueva cuenta en el portal. Su usuario es: " + document_number + " y su contraseña es: " + password)
-        # print(mensaje)
         # mail.send(mensaje)
-        print("Enviando correo a: ", partner_email)
-
 
     db.session.add(new_client)
     db.session.commit()
 
-    print("finish")
-
-    # dar de alta al usuario de odoo
     return jsonify({'data': "Done"}), 200
 
 

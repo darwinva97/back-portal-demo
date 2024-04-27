@@ -29,9 +29,6 @@ def get_clients(user_data=None):
 
     serialized_clients = [client.serialize() for client in clients]
 
-    print(clients)
-    print(serialized_clients)
-
     return jsonify({
         'data': serialized_clients
     })

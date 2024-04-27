@@ -49,7 +49,6 @@ def get_clientid_by_creds(doc_nro: str):
 def get_client():
     models_data = models.execute_kw(db, uid, password, 'res.partner', 'search_read',
                                     [[['email', '=', 'azure.Interior24@example.com']]], {'fields': ['name', 'country_id', 'phone']})
-    print(models_data)
     return jsonify({'messagee': 'Datos obtenidos satisfacotiramente', 'data': models_data})
 
 
